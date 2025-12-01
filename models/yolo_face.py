@@ -1,7 +1,7 @@
-import cv2
-import numpy as np
-from ultralytics import YOLO
-import onnxruntime as ort
+import cv2 # type: ignore
+import numpy as np # type: ignore
+from ultralytics import YOLO # type: ignore
+import onnxruntime as ort # type: ignore
 
 
 class FaceDetector:
@@ -84,6 +84,27 @@ class FaceDetector:
             if crop.size == 0:
                 continue
 
+            # # 2) PFLD 98 LANDMARK
+            # crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+            # crop_resized = cv2.resize(crop_rgb, (self.INPUT_SIZE, self.INPUT_SIZE))
+
+            # inp = crop_resized.astype(np.float32) / 255.0
+            # inp = np.transpose(inp, (2, 0, 1))[None, :, :, :]
+
+            # out = self.sess.run(None, {self.input_name: inp})[0]
+            # pts98 = out.reshape(98, 2)
+
+            # # Scale back to original image coords
+            # pts = pts98.copy()
+            # pts[:, 0] = pts[:, 0] * (x2 - x1) + x1
+            # pts[:, 1] = pts[:, 1] * (y2 - y1) + y1
+
+            # # Extract 5 points
+            # pts5 = pts[self.ARC_IDX]
+
+            # # 3) ALIGN FACE
+            # aligned = self._align(frame, pts5)
+
             # 2) PFLD 98 LANDMARK
             crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
             crop_resized = cv2.resize(crop_rgb, (self.INPUT_SIZE, self.INPUT_SIZE))
@@ -94,20 +115,20 @@ class FaceDetector:
             out = self.sess.run(None, {self.input_name: inp})[0]
             pts98 = out.reshape(98, 2)
 
-            # Scale back to original image coords
-            pts = pts98.copy()
-            pts[:, 0] = pts[:, 0] * (x2 - x1) + x1
-            pts[:, 1] = pts[:, 1] * (y2 - y1) + y1
+            # Convert to crop coordinates (NOT full frame)
+            pts98[:, 0] *= crop.shape[1]
+            pts98[:, 1] *= crop.shape[0]
 
             # Extract 5 points
-            pts5 = pts[self.ARC_IDX]
+            pts5 = pts98[self.ARC_IDX]
 
-            # 3) ALIGN FACE
-            aligned = self._align(frame, pts5)
+            # 3) ALIGN FACE using crop, NOT full frame
+            aligned = self._align(crop, pts5)
+
 
             # Append
             face_boxes.append([x1, y1, x2, y2])
-            landmarks_list.append(pts)
+            landmarks_list.append(pts5)
             pts5_list.append(pts5)
             aligned_list.append(aligned)
 

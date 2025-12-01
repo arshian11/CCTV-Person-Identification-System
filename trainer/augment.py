@@ -123,10 +123,13 @@ if __name__ == "__main__":
         if len(all_person_embeddings) > 0:
             emb_matrix = np.array(all_person_embeddings)
             
-            mean_emb = np.mean(emb_matrix, axis=0)
+            # mean_emb = np.mean(emb_matrix, axis=0)
             
             # Normalize the mean embedding
-            mean_emb = mean_emb / np.linalg.norm(mean_emb) + 1e-12
+            # mean_emb = mean_emb / np.linalg.norm(mean_emb) + 1e-12
+            mean_emb = np.median(emb_matrix, axis=0)
+            mean_emb = mean_emb / (np.linalg.norm(mean_emb) + 1e-12)
+
             
             filename = f"{person}_average_embedding"
             save_embedding(mean_emb, save_dir, filename)

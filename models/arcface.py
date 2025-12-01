@@ -49,46 +49,106 @@ except Exception:
     _onx_available = False
 
 
+# class ArcFaceRecognizer:
+#     def __init__(
+#         self,
+#         model_path: str,
+#         input_size: int = 112,
+#         device: Optional[str] = None,
+#         normalize: bool = True,
+#     ):
+#         """
+#         Params:
+#             model_path: path to .onnx or PyTorch .pt/.pth ArcFace model
+#             input_size: expected face input (default 112)
+#             device: 'cpu' or 'cuda' (if PyTorch available). If None, auto-select.
+#             normalize: L2-normalize embeddings before returning
+#         """
+#         self.model_path = model_path
+#         self.input_size = input_size
+#         self.normalize = normalize
+
+#         ext = os.path.splitext(model_path.lower())[1]
+#         self.backend = None
+
+#         # Choose device
+#         if device is None:
+#             device = "cuda" if (_torch_available and torch.cuda.is_available()) else "cpu"
+#         self.device = device
+
+#         # Load model
+#         if ext in [".onnx"]:
+#             if not _onx_available:
+#                 raise RuntimeError("onnxruntime not available. Install onnxruntime to use ONNX models.")
+#             self.backend = "onnx"
+#             self._load_onnx(model_path)
+#         elif ext in [".pt", ".pth"]:
+#             if not _torch_available:
+#                 raise RuntimeError("torch not available. Install PyTorch to use .pt models.")
+#             self.backend = "torch"
+#             self._load_torch(model_path)
+#         else:
+#             raise ValueError("Unsupported model extension. Use .onnx or .pt/.pth")
+
 class ArcFaceRecognizer:
     def __init__(
         self,
-        model_path: str,
+        model_path: str = None, # type: ignore
         input_size: int = 112,
         device: Optional[str] = None,
         normalize: bool = True,
     ):
         """
-        Params:
-            model_path: path to .onnx or PyTorch .pt/.pth ArcFace model
-            input_size: expected face input (default 112)
-            device: 'cpu' or 'cuda' (if PyTorch available). If None, auto-select.
-            normalize: L2-normalize embeddings before returning
+        NOTE:
+        model_path is IGNORED.
+        We always load InsightFace Buffalo_L ArcFace model
+        to match your FAISS embeddings.
         """
-        self.model_path = model_path
         self.input_size = input_size
         self.normalize = normalize
 
-        ext = os.path.splitext(model_path.lower())[1]
-        self.backend = None
-
-        # Choose device
+        # select device
         if device is None:
             device = "cuda" if (_torch_available and torch.cuda.is_available()) else "cpu"
         self.device = device
 
-        # Load model
-        if ext in [".onnx"]:
-            if not _onx_available:
-                raise RuntimeError("onnxruntime not available. Install onnxruntime to use ONNX models.")
-            self.backend = "onnx"
-            self._load_onnx(model_path)
-        elif ext in [".pt", ".pth"]:
-            if not _torch_available:
-                raise RuntimeError("torch not available. Install PyTorch to use .pt models.")
-            self.backend = "torch"
-            self._load_torch(model_path)
-        else:
-            raise ValueError("Unsupported model extension. Use .onnx or .pt/.pth")
+        # FORCE buffalo_l model
+        self.backend = "onnx"
+        self._load_buffalo_l()
+
+    def _load_buffalo_l(self):
+        """
+        Load InsightFace Buffalo_L ArcFace model.
+        If missing, auto-download it (same behavior as InsightFace library).
+        """
+        import insightface # type: ignore
+        from insightface.app import FaceAnalysis # type: ignore
+
+        # Use InsightFace to handle download + model management
+        print("[ArcFace] Loading Buffalo_L model via InsightFace...")
+
+        app = FaceAnalysis(
+            name="buffalo_l",
+            providers=["CPUExecutionProvider"]
+        )
+        app.prepare(ctx_id=0, det_size=(112, 112))
+
+        # Get the path to the automatically downloaded backbone ONNX model
+        model_root = app.models["recognition"].model_file
+        buffalo_model = model_root
+
+        print(f"[ArcFace] Buffalo_L model path: {buffalo_model}")
+
+        # Load using ONNX Runtime (keep your pipeline unchanged)
+        self.onnx_sess = ort.InferenceSession(
+            buffalo_model,
+            providers=["CPUExecutionProvider"]
+        )
+
+        # Embedding dimension
+        out = self.onnx_sess.get_outputs()[0]
+        self.emb_dim = out.shape[-1] if len(out.shape) >= 1 else 512
+
 
     # -----------------------
     # Backend loaders
@@ -311,14 +371,25 @@ class ArcFaceRecognizer:
         idx = int(indices[0][0])
 
         monotonic_similarity = 1 / (1 + dist)
-        cosine_sim = 1 - (dist * dist) / 2.0
+        # cosine_sim = 1 - (dist * dist) / 2.0
         sigmoid_similarity = np.exp(-dist)
+
+        cosine_sim = dist
+        
+        # print(f"FAISS distance: {dist:.4f}")
+        # print(f"Monotonic similarity: {monotonic_similarity:.4f}")
+        # print(f"Cosine similarity: {cosine_sim:.4f}")
+        # print(f"Sigmoid similarity: {sigmoid_similarity:.4f}")
+        # print("Threshold:", threshold)
 
         if cosine_sim < threshold:
             return ("Unknown", cosine_sim)
 
         person_id = labels[idx]
         person_name = id_map[str(person_id)]
+
+        # print(" Person → predicted: ", id_map[str(person_id)])
+
 
         return (person_name, cosine_sim)
 

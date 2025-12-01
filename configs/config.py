@@ -23,3 +23,7 @@ ARCFACE_MODEL = "models/glintr100.onnx"
 
 VEHICLE_MODEL = "models/yolov8s.pt"
 PLATE_MODEL   = "models/license_plate_detection.pt"
+
+YOLO_MODEL_PATH = "models/best.pt"
+YOLO_PERSON_MODEL = "models/best.pt"
+YOLO_FACE_MODEL = "models/yolov8n-face-lindevs.pt"

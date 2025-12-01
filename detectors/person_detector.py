@@ -150,13 +150,13 @@ try:
             person_crop = frame[py1:py2, px1:px2].copy()
             name = "Unknown"
 
-            # try:
-            #     name = find_person(person_crop)  
-            #     if name is None or not isinstance(name, str) or name == "":
-            #         name = "Unknown"
-            # except Exception as e:
-            #     # print(f"Recognition error: {e}")
-            #     name = "Unknown"
+            try:
+                name = find_person(person_crop)  
+                if name is None or not isinstance(name, str) or name == "":
+                    name = "Unknown"
+            except Exception as e:
+                # print(f"Recognition error: {e}")
+                name = "Unknown"
             t_face_start = time.time()
             # # 4. DETECT FACES *INSIDE* THE PERSON CROP
             face_results = face_model.predict(person_crop, conf=CONF_FACE, verbose=False)
@@ -228,14 +228,14 @@ try:
 
         # --- PRINT DIAGNOSTICS ---
         # Using \r to overwrite line in console is cleaner, or just print block
-        print(f"--- FRAME STATS (Total: {dur_total:.4f}s) ---")
-        print(f"1. Capture:      {dur_cap:.4f}s")
-        print(f"2. Person Detect:{dur_person:.4f}s")
-        print(f"3. Box Merge:    {dur_box_proc:.4f}s")
-        print(f"4. Face Detect:  {time_spent_face_det:.4f}s [Count: {people_count}]")
-        print(f"5. Recognition:  {time_spent_recognition:.4f}s")
-        print(f"6. Viz/Draw:     {dur_viz:.4f}s")
-        print("-" * 30)
+        # print(f"--- FRAME STATS (Total: {dur_total:.4f}s) ---")
+        # print(f"1. Capture:      {dur_cap:.4f}s")
+        # print(f"2. Person Detect:{dur_person:.4f}s")
+        # print(f"3. Box Merge:    {dur_box_proc:.4f}s")
+        # print(f"4. Face Detect:  {time_spent_face_det:.4f}s [Count: {people_count}]")
+        # print(f"5. Recognition:  {time_spent_recognition:.4f}s")
+        # print(f"6. Viz/Draw:     {dur_viz:.4f}s")
+        # print("-" * 30)
 
         fps = 1.0 / (time.time() - t0)
         fps_avg = 0.8 * fps_avg + 0.2 * fps

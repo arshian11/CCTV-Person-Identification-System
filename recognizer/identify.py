@@ -34,9 +34,11 @@ def find_person(face_crop):
     dist = float(distances[0][0])
     idx = int(indices[0][0])
 
-    monotonic_similarity = 1 / (1 + dist)
-    cosine_sim = 1 - (dist * dist) / 2.0
-    sigmoid_similarity = np.exp(-dist)    # smooth, range (0 to 1)
+    # monotonic_similarity = 1 / (1 + dist)
+    # cosine_sim = 1 - (dist * dist) / 2.0
+    cosine_sim = dist 
+
+    # sigmoid_similarity = np.exp(-dist)    # smooth, range (0 to 1)
 
 
 
@@ -51,7 +53,7 @@ def find_person(face_crop):
 
     person_id = labels[idx]
 
-    print(" Person → predicted: ", id_map[str(person_id)])
+    # print(" Person → predicted: ", id_map[str(person_id)])
 
     return id_map[str(person_id)]
 
