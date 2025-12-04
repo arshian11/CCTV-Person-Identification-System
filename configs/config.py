@@ -15,15 +15,15 @@ N_AUGMENTS = 10
 
 MATCH_THRESHOLD = 0.45
 
-PERSON_MODEL = "models/best.pt"
-FACE_MODEL = "models/yolov8n-face-lindevs.pt"
-PFLD_MODEL = "models/PFLD_GhostOne_112_1_opt_sim.onnx"
-ARCFACE_MODEL = "models/glintr100.onnx"
+PERSON_MODEL = "weights/best.pt"
+FACE_MODEL = "weights/yolov8n-face-lindevs.pt"
+PFLD_MODEL = "weights/PFLD_GhostOne_112_1_opt_sim.onnx"
+ARCFACE_MODEL = "weights/glintr100.onnx"
 # EMB_DB_PATH = "C:\Users\devka\face_project\embeddings_db.npz"
 
-VEHICLE_MODEL = "models/yolov8s.pt"
-PLATE_MODEL   = "models/license_plate_detection.pt"
+VEHICLE_MODEL = "weights/yolov8s.pt"
+PLATE_MODEL   = "weights/license_plate_detection.pt"
 
-YOLO_MODEL_PATH = "models/best.pt"
-YOLO_PERSON_MODEL = "models/best.pt"
-YOLO_FACE_MODEL = "models/yolov8n-face-lindevs.pt"
+YOLO_MODEL_PATH = "weights/best.pt"
+YOLO_PERSON_MODEL = "weights/best.pt"
+YOLO_FACE_MODEL = "weights/yolov8n-face-lindevs.pt"

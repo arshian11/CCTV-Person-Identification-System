@@ -22,6 +22,7 @@ augment = A.Compose([
 
 def save_embedding(embedding, folder, filename):
     """Saves embedding as .npy file"""
+    embedding = embedding / (np.linalg.norm(embedding) + 1e-12)
     if not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
     npy_path = os.path.join(folder, f"{filename}.npy")

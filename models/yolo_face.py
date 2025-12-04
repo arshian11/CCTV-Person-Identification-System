@@ -16,6 +16,9 @@ class FaceDetector:
         # YOLO Face
         self.yolo = YOLO(yolo_model_path)
         self.conf = conf
+        self.yolo.to('cuda')
+        print("[YOLO-Face] Using device:", self.yolo.device)
+
 
         # PFLD Landmark Model
         self.sess = ort.InferenceSession(pfld_model_path, providers=providers)
